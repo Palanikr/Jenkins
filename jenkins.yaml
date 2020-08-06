@@ -1,0 +1,45 @@
+- hosts: jenkins
+  remote_user: ec2-user
+  become: yes
+  vars:
+     ports: 2020
+  tasks:
+      - name: install jenkins
+        yum_repository: 
+           name: jenkins
+           description: jenkins repo
+           baseurl: http://pkg.jenkins.io/redhat
+           gpgkey: http://pkg.jenkins.io/redhat/jenkins.io.key
+      
+      - name: install java and jenkins
+        yum:
+           name: "{{ item }}"
+           state: present
+        loop:
+           - java 
+           - jenkins
+
+      - name: change default port number
+        lineinfile:
+           path: /etc/sysconfig/jenkins
+           regexp: '^JENKINS_PORT='
+           line: JENKINS_PORT={{ports}}
+        notify:
+           - restart jenkins  
+      - name: jenkins password
+        command: cat /var/lib/jenkins/secrets/initialAdminPassword
+        register: jenkinspassword
+
+      - name: print jenkins password
+        debug:
+           msg: "{{jenkinspassword}}"
+
+      - name: start service
+        service:
+           name: jenkins
+           state: started
+  handlers:
+      - name: restart jenkins
+        service:
+           name: jenkins
+           state: restarted 
