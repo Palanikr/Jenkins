@@ -1,0 +1,8 @@
+- hosts: all
+  remote_user: ec2-user
+  become: yes
+  tasks:
+      - name: Copy file with owner and permissions
+        copy:
+          src: /home/ec2-user
+          dest: /root/git
